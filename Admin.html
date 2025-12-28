@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> Panel de Control - Plazas de Mercado </title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; text-align: center; background-color: #f4f7f6; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2 { color: #2c3e50; }
+    button { 
+      display: block; width: 100%; margin: 15px 0; padding: 15px; 
+      font-size: 16px; font-weight: bold; cursor: pointer; 
+      border: none; border-radius: 8px; transition: 0.3s;
+    }
+    .btn-abastecimiento { background-color: #27ae60; color: white; }
+    .btn-abastecimiento:hover { background-color: #219150; }
+    
+    .btn-comparativo { background-color: #2980b9; color: white; }
+    .btn-comparativo:hover { background-color: #1f6391; }
+    
+    #status { margin-top: 20px; font-weight: bold; color: #555; }
+    .loader { display: none; color: #f39c12; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Gestión de Datos</h2>
+  
+  
+
+  <button id="btnEjecutar" class="btn-abastecimiento" onclick="ejecutarProceso()">
+    Generar Consolidado de Abastecimiento
+  </button>
+  <div id="estado" style="margin-top:10px; font-weight:bold;"></div>
+
+  <button class="btn-comparativo" onclick="llamarGoogleScript('run_python')">
+    Ejecutar Comparativo
+  </button>
+  <div id="loader" class="loader">Procesando solicitud...</div>
+
+  <p id="status"></p>
+</div>
+
+<script>
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwB6TPsLMgN6aBfQx9nWCmaXcV_8pnOwal2QceVvf_k54wGnsPVrts5Xjc_Pki2yhTr/exec";
+
+   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZ4Vrdv-uLE41_AEV4Q7SCTXTZKKOKenk3YukNaUPg0QCI4EbJZNXaQomGHm6Sp1XDNw/exec";
+    const EXCEL_ID = "19QM8vpZLqTgDqpskqSsj2BeerjMguob8oHMfxTEH1dA";
+
+    let ventanaDescarga = null;
+
+    function ejecutarProceso() {
+      const estadoDiv = document.getElementById("estado");
+      const btn = document.getElementById("btnEjecutar");
+
+      btn.disabled = true;
+      estadoDiv.textContent = "⏳ Proceso en ejecución...";
+
+      // ✅ Abrir ventana con mensaje, no en blanco
+      ventanaDescarga = window.open("", "_blank");
+      ventanaDescarga.document.write(`
+        <html>
+          <head>
+            <title>Generando Excel</title>
+            <style>
+              body {
+                font-family: Arial;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                background: #f5f5f5;
+              }
+            </style>
+          </head>
+          <body>
+            <h3>⏳ Generando el archivo Excel, por favor espera...</h3>
+          </body>
+        </html>
+      `);
+
+      fetch(SCRIPT_URL, { method: "POST" })
+        .then(() => esperarFinalizacion());
+    }
+
+    function esperarFinalizacion() {
+      const intervalo = setInterval(() => {
+        fetch(SCRIPT_URL)
+          .then(res => res.text())
+          .then(estado => {
+            if (estado === "finalizado") {
+              clearInterval(intervalo);
+
+              document.getElementById("estado").textContent =
+                "✅ Proceso finalizado. Descargando Excel...";
+
+              descargarExcelAbast();
+              document.getElementById("btnEjecutar").disabled = false;
+            }
+          });
+      }, 3000);
+    }
+
+    function descargarExcelAbast() {
+      const url =
+        `https://docs.google.com/spreadsheets/d/${EXCEL_ID}/export?format=xlsx`;
+
+      // ✅ Reutiliza la ventana ya autorizada
+      ventanaDescarga.location.href = url;
+
+      // Cerrar ventana luego de iniciar descarga
+      setTimeout(() => {
+        ventanaDescarga.close();
+      }, 3000);
+    }
+
+  async function llamarGoogleScript(accion) {
+  const status = document.getElementById("status");
+  const loader = document.getElementById("loader");
+
+  status.innerText = "";
+  loader.style.display = "block";
+
+  let payload = {};
+  if (accion === 'run_python') {
+    payload = { action: "run_python" };
+  } else {
+    payload = { action: "insert", data: "Proceso iniciado" };
+  }
+
+  try {
+    await fetch(WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    status.style.color = "green";
+    status.innerText = "Archivo en proceso de generación. Espera unos segundos...";
+
+    // ⏳ Esperar a que GitHub Actions termine
+    setTimeout(() => {
+      descargarExcel();
+      status.innerText = "Archivo generado y descargado.";
+    }, 15000); // 15 segundos (ajusta según tu proceso)
+
+  } catch (err) {
+    status.style.color = "red";
+    status.innerText = "Error al conectar con el servidor.";
+    console.error(err);
+  } finally {
+    loader.style.display = "none";
+  }
+  }
+
+function descargarExcel() {
+  const url = "https://raw.githubusercontent.com/DarlingMartinez/Proyecto_Plazas_De_Mercado/main/Reporte_Comparativo.xlsx";
+  
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "Reporte_Comparativo.xlsx"; // nombre con el que se descargará
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+
+  const url1 = "https://raw.githubusercontent.com/DarlingMartinez/Proyecto_Plazas_De_Mercado/main/Reporte_Comparativo.xlsx";
+  const link1 = document.createElement("a");
+  link1.href = url1;
+  link1.download = "Reporte_Comparativo.xlsx"; // nombre
+  document.body.appendChild(link1);
+  link1.click();
+  document.body.removeChild(link1);
+}
+
+  /*async function llamarGoogleScript(accion) {
+    const status = document.getElementById("status");
+    const loader = document.getElementById("loader");
+    
+    status.innerText = "";
+    loader.style.display = "block";
+
+    let payload = {};
+    if (accion === 'run_python') {
+      payload = { "action": "run_python" };
+    } else {
+      payload = { "action": "insert", "data": "Proceso iniciado" }; 
+    }
+
+    try {
+      const response = await fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      status.style.color = "green";
+      status.innerText = (accion === 'run_python') 
+        ? "Solicitud enviada a GitHub Actions correctamente." 
+        : "Proceso de abastecimiento ejecutado.";
+
+    } catch (err) {
+      status.style.color = "red";
+      status.innerText = "Error al conectar con el servidor.";
+      console.error(err);
+    } finally {
+      loader.style.display = "none";
+    }
+  }*/
+</script>
+
+</body>
+</html>

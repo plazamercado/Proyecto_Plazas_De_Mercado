@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Encuesta - Abastecimiento</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <style>
+        /* Estilos CSS Base */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: #1294b4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .btn:disabled {
+            background: gray;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            padding: 12px 25px;
+            font-size: 16px;
+        }
+
+        .button {
+            padding: 12px 25px;
+            background: #1294b4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .btn_1 {
+            padding: 12px 25px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Tabla de Productos */
+        #tablaProductos {
+            min-width: 1100px;
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        #tablaProductos th,
+        #tablaProductos td {
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #9c9c9c;
+            font-size: 11px;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+
+        #tablaProductos th {
+            background-color: #f2f2f2;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Encabezados agrupados con colores pastel */
+        .header-abastecimiento {
+            background-color: rgba(173, 216, 230, 0.4) !important;
+            /* Azul pastel transparente */
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .header-venta {
+            background-color: rgba(144, 238, 144, 0.4) !important;
+            /* Verde pastel transparente */
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 10px;
+            max-width: 100%;
+            padding-bottom: 10px;
+        }
+
+        /* Estilos para celdas específicas */
+        /* Celda de GRUPO (Rowspan) */
+        #tablaProductos td:first-child {
+            background: #ffffff;
+            font-weight: bold;
+            width: 10%;
+            text-align: left;
+        }
+
+        /* Celda de PRODUCTO */
+        #tablaProductos td:nth-child(2) {
+            width: 12%;
+            font-weight: bold;
+            background-color: white;
+            text-align: left;
+        }
+
+        /* ESTILO SOLICITADO: Fondo Verde para Productos de Canasta Familiar */
+        .producto-canasta {
+            background-color: #c8e6c9 !important;
+        }
+
+        /* Estilo para las celdas de input dentro de la tabla */
+        #tablaProductos input,
+        #tablaProductos select {
+            margin: 0;
+            padding: 4px;
+            font-size: 11px;
+            height: 26px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        /* Estilo para la unidad fija (Libra) */
+        .unidad-fija {
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            padding: 4px;
+            height: 26px;
+            line-height: 18px;
+            background-color: #f8f8f8;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+
+        /* Estilos para el Buscador Select2 */
+        .select2-container {
+            width: 100% !important;
+            margin-top: 5px;
+        }
+
+        .select2-container .select2-selection--single {
+            height: 38px;
+            padding: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .select2-selection__arrow {
+            height: 36px !important;
+        }
+
+        .select2-container--open {
+            z-index: 9999 !important;
+        }
+
+        /* Estilos para el Modal Personalizado */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .modal-message {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #666;
+            text-align: left;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn-conservar {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .modal-btn-conservar:hover {
+            background-color: #218838;
+        }
+
+        .modal-btn-eliminar {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-eliminar:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Modal Personalizado para Decisión de Datos -->
+    <div class="modal-overlay" id="modalDecision">
+        <div class="modal-content">
+            <div class="modal-icon">⚠️</div>
+            <div class="modal-title">CAMBIO DETECTADO</div>
+            <div class="modal-message" id="modalMessage">
+                Ha detectado un cambio en los datos del punto (Localidad, Plaza o ID).<br><br>
+                ¿Desea <strong>CONSERVAR</strong> los productos ya ingresados para este nuevo punto o prefiere
+                <strong>ELIMINARLOS</strong> para empezar de cero?
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-conservar" onclick="modalDecisionResponse(true)">Conservar</button>
+                <button class="modal-btn modal-btn-eliminar" onclick="modalDecisionResponse(false)">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="mainFormContainer">
+        <h2>Formulario de Encuesta</h2>
+
+        <div class="step active" id="step1">
+            <label>Encuestador:</label>
+            <select id="encuestador">
+                <option value="">Seleccione encuestador...</option>
+                <option value="1">Encuestador 1</option>
+                <option value="2">Encuestador 2</option>
+                <option value="3">Encuestador 3</option>
+                <option value="4">Encuestador 4</option>
+                <option value="5">Encuestador 5</option>
+                <option value="6">Encuestador 6</option>
+                <option value="7">Encuestador 7</option>
+                <option value="8">Encuestador 8</option>
+                <option value="9">Encuestador 9</option>
+                <option value="10">Encuestador 10</option>
+            </select>
+
+            <label>Fecha:</label>
+            <input type="date" id="fecha">
+
+            <label>Localidad:</label>
+            <select id="localidad" onchange="cargarPlazas()">
+                <option value="">Seleccione localidad...</option>
+                <option value="TUNJUELITO">TUNJUELITO</option>
+                <option value="ANTONIO NARIÑO">ANTONIO NARIÑO</option>
+                <option value="PUENTE ARANDA">PUENTE ARANDA</option>
+                <option value="SAN CRISTOBAL">SAN CRISTOBAL</option>
+                <option value="ENGATIVÁ">ENGATIVÁ</option>
+                <option value="KENNEDY">KENNEDY</option>
+                <option value="SANTAFÉ">SANTAFÉ</option>
+                <option value="FONTIBÓN">FONTIBÓN</option>
+                <option value="BARRIOS UNIDOS">BARRIOS UNIDOS</option>
+                <option value="LA CANDELARIA">LA CANDELARIA</option>
+                <option value="CIUDAD BOLÍVAR">CIUDAD BOLÍVAR</option>
+                <option value="MÁRTIRES">MÁRTIRES</option>
+            </select>
+
+            <label>Plaza:</label>
+            <select id="plaza">
+                <option value="">Seleccione una localidad primero...</option>
+            </select>
+
+            <label>Seleccione el tipo de punto a encuestar:</label>
+            <select id="tipoPunto">
+                <option value="">Seleccione...</option>
+                <option value="plaza">Local dentro de la plaza</option>
+                <option value="externo">Local externo</option>
+            </select>
+
+            <div id="campoNumLocal" style="display:none;">
+                <label>Número del local (dentro de la plaza):</label>
+                <input type="text" id="numLocal" placeholder="Ingrese el número del módulo/local">
+            </div>
+
+            <div id="campoRefLocalExterno" style="display:none;">
+                <label>Nombre o dirección del local externo:</label>
+                <input type="text" id="refLocalExterno" placeholder="Ingrese nombre o dirección">
+            </div>
+
+            <button class="btn" onclick="goToProductsScreen()">Siguiente</button>
+        </div>
+    </div>
+    <div class="container" id="pantallaAgregarProductos" style="display:none;">
+        <div
+            style="font-size:16px; font-weight:bold; margin-bottom:20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+            <p style="margin: 0;"><span id="infoEncuestador"></span> - <span id="infoFecha"></span></p>
+            <p style="margin: 5px 0 0 0;"><span id="infoLocalidad"></span>, <span id="infoPlaza"></span></p>
+            <p style="margin: 5px 0 0 0;">Punto: <span id="infoPunto"></span></p>
+        </div>
+        <div class="table-responsive">
+            <table id="tablaProductos" border="1" style="margin-top:10px; border-collapse:collapse;">
+                <thead id="theadProductos">
+                    <!-- Los encabezados se generarán dinámicamente en JavaScript -->
+                </thead>
+                <tbody id="tbodyProductos">
+                </tbody>
+            </table>
+        </div>
+        <center>
+            <button class="btn_1" onclick="cancelarEncuesta()" style="margin-top:20px;">
+                Cancelar
+            </button>
+            <button class="button" id="btnEnviar" onclick="enviarFormulario()" style="margin-top:20px; display:none;">
+                Enviar
+            </button>
+            <button class="btn-secondary btn" onclick="goBackToMainForm()">Atrás</button>
+        </center>
+    </div>
+
+    <script>
+        /* ========================================================= */
+        /* ===              1. CONSTANTES GLOBALES               === */
+        /* ========================================================= */
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwB6TPsLMgN6aBfQx9nWCmaXcV_8pnOwal2QceVvf_k54wGnsPVrts5Xjc_Pki2yhTr/exec";
+        const plazasPorLocalidad = {
+            "TUNJUELITO": ["PDM EL CARMEN", "PDM SAN BENITO", "PDM SAN CARLOS"],
+            "ANTONIO NARIÑO": ["PDM CARLOS RESTREPO", "PDM SANTANDER"],
+            "PUENTE ARANDA": ["PDM TRINIDAD GALAN"],
+            "SAN CRISTOBAL": ["PDM 20 DE JULIO"],
+            "ENGATIVÁ": ["PDM LAS FERIAS", "PDM QUIRIGUA"],
+            "KENNEDY": ["PDM KENNEDY"],
+            "SANTAFÉ": ["PDM LAS CRUCES", "PDM PERSEVERANCIA"],
+            "FONTIBÓN": ["PDM FONTIBON"],
+            "BARRIOS UNIDOS": ["PDM SIETE DE AGOSTO", "PDM DOCE DE OCTUBRE"],
+            "LA CANDELARIA": ["PDM LA CONCORDIA"],
+            "CIUDAD BOLÍVAR": ["PDM LOS LUCEROS"],
+            "MÁRTIRES": ["PDM SAMPER MENDOZA"]
+        };
+
+        // --- LISTA PLANA DE PRODUCTOS (ESTRUCTURA ORIGINAL) ---
+        const listaProductosFijos = [
+            // CÁRNICOS
+            { grupo: "CÁRNICOS", producto: "CADERA", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "CANAL", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "CHATAS", canasta: "Sí" },
+            { grupo: "CÁRNICOS", producto: "COSTILLA", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "FALDA", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "LOMO", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "PIERNA", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "SOBREBARRIGA", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "POLLO/PECHUGA", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "PESCADO", canasta: "No" },
+            { grupo: "CÁRNICOS", producto: "HUEVOS", canasta: "Sí" },
+
+            // LÁCTEOS
+            { grupo: "LÁCTEOS", producto: "LECHE", canasta: "Sí" },
+            { grupo: "LÁCTEOS", producto: "QUESO", canasta: "Sí" },
+            { grupo: "LÁCTEOS", producto: "YOGURTH", canasta: "No" },
+            { grupo: "LÁCTEOS", producto: "CUAJADA", canasta: "No" },
+
+            // FRUTAS
+            { grupo: "FRUTAS", producto: "AGUACATE", canasta: "No" },
+            { grupo: "FRUTAS", producto: "AGUACATE HASS", canasta: "No" },
+            { grupo: "FRUTAS", producto: "BANANO", canasta: "Sí" },
+            { grupo: "FRUTAS", producto: "CURUBA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "DURAZNO", canasta: "No" },
+            { grupo: "FRUTAS", producto: "FRESA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "GRANADILLA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "GUANÁBANA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "GUAYABA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "LIMÓN", canasta: "No" },
+            { grupo: "FRUTAS", producto: "MANDARINA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "MANGO", canasta: "No" },
+            { grupo: "FRUTAS", producto: "MORA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "PAPAYA", canasta: "Sí" },
+            { grupo: "FRUTAS", producto: "PIÑA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "PERA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "UVA", canasta: "No" },
+            { grupo: "FRUTAS", producto: "NARANJA", canasta: "Sí" },
+            { grupo: "FRUTAS", producto: "PLÁTANO Gral", canasta: "No" },
+
+            // HIERBAS
+            { grupo: "HIERBAS", producto: "CILANTRO", canasta: "Sí" },
+            { grupo: "HIERBAS", producto: "HIERBAS", canasta: "No" },
+            // TUBÉRCULOS
+            { grupo: "TUBÉRCULOS", producto: "ARRACACHA", canasta: "No" },
+            { grupo: "TUBÉRCULOS", producto: "PAPA", canasta: "Sí" },
+            { grupo: "TUBÉRCULOS", producto: "YUCA", canasta: "Sí" },
+
+            // VERDURAS
+            { grupo: "VERDURAS", producto: "ACELGA", canasta: "No" },
+            { grupo: "VERDURAS", producto: "AHUYAMA", canasta: "No" },
+            { grupo: "VERDURAS", producto: "AJO", canasta: "No" },
+            { grupo: "VERDURAS", producto: "APIO", canasta: "No" },
+            { grupo: "VERDURAS", producto: "ARVEJA VERDE", canasta: "No" },
+            { grupo: "VERDURAS", producto: "BRÓCOLI", canasta: "No" },
+            { grupo: "VERDURAS", producto: "CALABACÍN/ZUCHINI", canasta: "No" },
+            { grupo: "VERDURAS", producto: "CEBOLLA CABEZONA", canasta: "No" },
+            { grupo: "VERDURAS", producto: "CEBOLLA LARGA", canasta: "Sí" },
+            { grupo: "VERDURAS", producto: "COLIFLOR", canasta: "No" },
+            { grupo: "VERDURAS", producto: "ESPINACA", canasta: "No" },
+            { grupo: "VERDURAS", producto: "HABICHUELA", canasta: "No" },
+            { grupo: "VERDURAS", producto: "LECHUGA", canasta: "No" },
+            { grupo: "VERDURAS", producto: "PEPINO COHOMBRO", canasta: "No" },
+            { grupo: "VERDURAS", producto: "PIMENTÓN", canasta: "No" },
+            { grupo: "VERDURAS", producto: "REMOLACHA", canasta: "No" },
+            { grupo: "VERDURAS", producto: "TOMATE", canasta: "Sí" },
+            { grupo: "VERDURAS", producto: "ZANAHORIA", canasta: "Sí" },
+
+            // CEREALES
+            { grupo: "CEREALES", producto: "ARROZ", canasta: "Sí" },
+            { grupo: "CEREALES", producto: "TRIGO", canasta: "No" },
+            { grupo: "CEREALES", producto: "AVENA", canasta: "No" },
+
+            // ENDULZANTES
+            { grupo: "ENDULZANTES", producto: "SAL", canasta: "Sí" },
+            { grupo: "ENDULZANTES", producto: "PANELA", canasta: "Sí" },
+            { grupo: "ENDULZANTES", producto: "AZUCAR", canasta: "Sí" },
+
+            // GRANOS
+            { grupo: "GRANOS", producto: "GARBANZO", canasta: "No" },
+            { grupo: "GRANOS", producto: "LENTEJAS", canasta: "Sí" },
+            { grupo: "GRANOS", producto: "FRIJOL", canasta: "Sí" },
+            { grupo: "GRANOS", producto: "MAÍZ", canasta: "No" },
+
+            // GRASAS
+            { grupo: "GRASAS", producto: "ACEITE", canasta: "Sí" },
+            { grupo: "GRASAS", producto: "MANTEQUILLA", canasta: "No" },
+
+            // OTROS
+            { grupo: "OTROS", producto: "CAFÉ", canasta: "Sí" },
+            { grupo: "OTROS", producto: "CHOCOLATE", canasta: "Sí" },
+            { grupo: "OTROS", producto: "PASTA", canasta: "Sí" },
+            { grupo: "OTROS", producto: "HARINA", canasta: "Sí" }
+        ];
+
+        // Opciones para el <select> de unidades de medida (ya no se usan como select, sino como hidden)
+        const unidadesMedida = [
+            { value: "Lb", text: "Libra" },
+            { value: "Kg", text: "Kilo" },
+            { value: "Lt", text: "Litro" },
+            { value: "Unit", text: "Unidad" }
+        ];
+
+        // Variables de estado global
+        let tipoDePuntoGlobal = "";
+        let contextoActual = { tipo: "", id: "" };
+
+        /* ========================================================= */
+        /* ===              2. FUNCIONES DE NAVEGACIÓN           === */
+        /* ========================================================= */
+
+        // Muestra/Oculta campos de Local/Externo
+        document.getElementById("tipoPunto").addEventListener("change", function () {
+            const tipo = this.value;
+            document.getElementById("campoNumLocal").style.display = tipo === 'plaza' ? 'block' : 'none';
+            document.getElementById("campoRefLocalExterno").style.display = tipo === 'externo' ? 'block' : 'none';
+        });
+
+        // Carga el <select> de plazas al cambiar la localidad
+        function cargarPlazas() {
+            const localidad = document.getElementById("localidad").value;
+            const plazaSelect = document.getElementById("plaza");
+            plazaSelect.innerHTML = `<option value="">Seleccione una plaza</option>`;
+            if (!localidad) return;
+            plazasPorLocalidad[localidad].forEach(plaza => {
+                const option = document.createElement("option");
+                option.value = plaza;
+                option.textContent = plaza;
+                plazaSelect.appendChild(option);
+            });
+        }
+
+        // Verifica si hay datos en la tabla de productos
+        function hayDatosEnTabla() {
+            const filas = document.getElementById("tbodyProductos").querySelectorAll('tr');
+            for (let fila of filas) {
+                const index = fila.getAttribute('data-index');
+
+                // Verificar si hay datos en campos de venta (siempre presentes)
+                const precio = document.getElementById(`precio_${index}`);
+                const empaque = document.getElementById(`empaque_${index}`);
+
+                if ((precio && precio.value) || (empaque && empaque.value)) {
+                    return true;
+                }
+
+                // Verificar datos de abastecimiento solo si es punto plaza
+                if (tipoDePuntoGlobal === 'plaza') {
+                    const cantidad = document.getElementById(`cantidad_${index}`);
+                    const procedencia = document.getElementById(`procedencia_${index}`);
+                    const frecuencia = document.getElementById(`frecuencia_${index}`);
+
+                    if ((cantidad && cantidad.value) || (procedencia && procedencia.value) || (frecuencia && frecuencia.value)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Lógica para ir a la pantalla de la tabla de productos
+        function goToProductsScreen() {
+            // 1. Capturar y validar campos generales
+            const encuestador = document.getElementById("encuestador").value;
+            const fecha = document.getElementById("fecha").value;
+            const localidad = document.getElementById("localidad").value;
+            const plaza = document.getElementById("plaza").value;
+            const nuevoTipoPunto = document.getElementById("tipoPunto").value;
+            let nuevoIdLocal = "";
+
+            if (!encuestador || !fecha || !localidad || !plaza) { alert("Complete todos los campos generales."); return; }
+            if (!nuevoTipoPunto) { alert("Seleccione un tipo de punto."); return; }
+
+            if (nuevoTipoPunto === 'plaza') {
+                nuevoIdLocal = document.getElementById("numLocal").value;
+                if (!nuevoIdLocal) { alert("Ingrese el número del local."); return; }
+            } else if (nuevoTipoPunto === 'externo') {
+                nuevoIdLocal = document.getElementById("refLocalExterno").value;
+                if (!nuevoIdLocal) { alert("Ingrese el nombre o dirección del local externo."); return; }
+            }
+
+            // 2. LÓGICA DE DECISIÓN: Detectar cambios y permitir al usuario elegir
+            const esNavegacionDeRegreso = (contextoActual.tipo !== "" || contextoActual.id !== "");
+            const cambioElTipo = (contextoActual.tipo !== "" && contextoActual.tipo !== nuevoTipoPunto);
+            const cambioElId = (contextoActual.id !== "" && contextoActual.id !== nuevoIdLocal);
+            const tieneDatos = hayDatosEnTabla();
+
+            // Variable para controlar si se deben limpiar los datos
+            let debeEliminarDatos = false;
+
+            if (esNavegacionDeRegreso && (cambioElTipo || cambioElId) && tieneDatos) {
+                // MOSTRAR MODAL DE DECISIÓN PERSONALIZADO
+                // La función continuará después de que el usuario haga clic en un botón
+                mostrarModalDecision(nuevoTipoPunto, nuevoIdLocal, encuestador, fecha, localidad, plaza);
+                return; // Detener ejecución, continuará en modalDecisionResponse
+            }
+
+            // Si no hay cambios o no hay datos, continuar normalmente
+            continuarNavegacionAProductos(nuevoTipoPunto, nuevoIdLocal, encuestador, fecha, localidad, plaza, false);
+        }
+
+        // Función para mostrar el modal de decisión
+        function mostrarModalDecision(nuevoTipoPunto, nuevoIdLocal, encuestador, fecha, localidad, plaza) {
+            // Guardar los parámetros para usarlos después
+            window.pendingNavigation = {
+                nuevoTipoPunto: nuevoTipoPunto,
+                nuevoIdLocal: nuevoIdLocal,
+                encuestador: encuestador,
+                fecha: fecha,
+                localidad: localidad,
+                plaza: plaza
+            };
+
+            // Mostrar el modal
+            document.getElementById("modalDecision").classList.add("active");
+        }
+
+        // Función que se ejecuta cuando el usuario hace clic en un botón del modal
+        function modalDecisionResponse(conservar) {
+            // Ocultar el modal
+            document.getElementById("modalDecision").classList.remove("active");
+
+            // Recuperar los parámetros guardados
+            const params = window.pendingNavigation;
+
+            // Determinar si se deben eliminar los datos
+            const debeEliminar = !conservar;
+
+            // Continuar con la navegación
+            continuarNavegacionAProductos(
+                params.nuevoTipoPunto,
+                params.nuevoIdLocal,
+                params.encuestador,
+                params.fecha,
+                params.localidad,
+                params.plaza,
+                debeEliminar
+            );
+
+            // Limpiar los parámetros guardados
+            window.pendingNavigation = null;
+        }
+
+        // Función que continúa la navegación a la pantalla de productos
+        function continuarNavegacionAProductos(nuevoTipoPunto, nuevoIdLocal, encuestador, fecha, localidad, plaza, debeEliminarDatos) {
+
+            // 3. Actualizar estado y variables globales
+            contextoActual = { tipo: nuevoTipoPunto, id: nuevoIdLocal };
+            tipoDePuntoGlobal = nuevoTipoPunto;
+
+            // 4. Cambio de Pantalla (Visual)
+            document.getElementById("mainFormContainer").style.display = "none";
+            document.getElementById("pantallaAgregarProductos").style.display = "block";
+
+            // 5. Rellenar cabecera de información
+            document.getElementById("infoEncuestador").textContent = "Encuestador: " + encuestador;
+            document.getElementById("infoFecha").textContent = "Fecha: " + fecha;
+            document.getElementById("infoLocalidad").textContent = "Localidad: " + localidad;
+            document.getElementById("infoPlaza").textContent = "Plaza: " + plaza;
+
+            document.getElementById("infoPunto").textContent = nuevoTipoPunto === 'plaza' ?
+                "Local Plaza #" + nuevoIdLocal : "Local Externo: " + nuevoIdLocal;
+
+            // 6. Si el usuario eligió eliminar, limpiar los datos de productos del localStorage
+            if (debeEliminarDatos) {
+                const dataGuardada = localStorage.getItem("encuesta_backup_data");
+                if (dataGuardada) {
+                    const estado = JSON.parse(dataGuardada);
+                    // Mantener los datos generales pero limpiar productosData
+                    estado.productosData = [];
+                    localStorage.setItem("encuesta_backup_data", JSON.stringify(estado));
+                }
+            }
+
+            // 7. Cargar la tabla fija y datos guardados (o vacía si se eliminaron)
+            cargarTablaFijaDeProductos();
+
+            // 8. Mostrar botones y guardar estado
+            document.getElementById("tablaProductos").style.display = "table";
+            document.getElementById("btnEnviar").style.display = "inline-block";
+            guardarEstadoLocal();
+        }
+
+        // Vuelve de la pantalla de productos a la de datos generales
+        function goBackToMainForm() {
+            document.getElementById("pantallaAgregarProductos").style.display = "none";
+            document.getElementById("mainFormContainer").style.display = "block";
+        }
+
+        // Función interna para resetear el formulario SIN alerta de confirmación
+        function resetFormulario() {
+            // Limpiar pantalla de productos
+            document.getElementById("tbodyProductos").innerHTML = "";
+
+            // Volver a la pantalla de inicio
+            document.getElementById("mainFormContainer").style.display = "block";
+            document.getElementById("pantallaAgregarProductos").style.display = "none";
+
+            // Limpiar storage y contexto
+            localStorage.removeItem("encuesta_backup_data");
+            contextoActual = { tipo: "", id: "" };
+            tipoDePuntoGlobal = "";
+
+            // Resetear campos del formulario (incluyendo Select2)
+            document.getElementById("encuestador").value = "";
+            document.getElementById("fecha").value = "";
+            document.getElementById("localidad").value = "";
+            document.getElementById("plaza").value = "";
+            document.getElementById("tipoPunto").value = "";
+            document.getElementById("tipoPunto").dispatchEvent(new Event('change'));
+            document.getElementById("numLocal").value = "";
+            document.getElementById("refLocalExterno").value = "";
+
+            // Forzar el Select2 a resetear
+            $('#encuestador').val('').trigger('change');
+            $('#localidad').val('').trigger('change');
+        }
+
+        // Cancela la encuesta por completo (CON confirmación del usuario)
+        function cancelarEncuesta() {
+            if (confirm("¿Está seguro de cancelar?\n\nSe perderán los datos en la tabla y se reseteará el formulario.\n\nPresione 'Aceptar' para continuar o 'Cancelar' para volver.")) {
+                resetFormulario();
+            }
+        }
+
+
+        /* ========================================================= */
+        /* ===              3. LÓGICA DE TABLA FIJA (CORREGIDA)  === */
+        /* ========================================================= */
+
+        // Genera los encabezados de la tabla según el tipo de punto
+        function generarEncabezadosTabla() {
+            const thead = document.getElementById("theadProductos");
+            const esPuntoPlaza = (tipoDePuntoGlobal === 'plaza');
+
+            let headerHTML = '';
+
+            if (esPuntoPlaza) {
+                // Mostrar TODAS las columnas (Abastecimiento + Venta)
+                headerHTML = `
+                    <tr>
+                        <th rowspan="2" style="width:10%;">Grupo</th>
+                        <th rowspan="2" style="width:12%;">Producto</th>
+                        <th colspan="4" class="header-abastecimiento">Abastecimiento</th>
+                        <th colspan="3" class="header-venta">Venta</th>
+                    </tr>
+                    <tr>
+                        <th style="width:8%;">Cant. Abast</th>
+                        <th style="width:8%;">Und. Abast</th>
+                        <th style="width:12%;">Procedencia</th>
+                        <th style="width:10%;">Frec. Compra</th>
+                        <th style="width:8%;">Und. Venta</th>
+                        <th style="width:10%;">Precio Venta</th>
+                        <th style="width:12%;">Und. Empaque</th>
+                    </tr>
+                `;
+            } else {
+                // Mostrar SOLO Grupo, Producto y Venta (ocultar Abastecimiento)
+                headerHTML = `
+                    <tr>
+                        <th rowspan="2" style="width:15%;">Grupo</th>
+                        <th rowspan="2" style="width:20%;">Producto</th>
+                        <th colspan="3" class="header-venta">Venta</th>
+                    </tr>
+                    <tr>
+                        <th style="width:15%;">Und. Venta</th>
+                        <th style="width:20%;">Precio Venta</th>
+                        <th style="width:30%;">Und. Empaque</th>
+                    </tr>
+                `;
+            }
+
+            thead.innerHTML = headerHTML;
+        }
+
+        // Crea la tabla con los inputs de la lista fija de productos
+        function cargarTablaFijaDeProductos() {
+            const tbody = document.getElementById("tbodyProductos");
+            tbody.innerHTML = "";
+
+            // Generar encabezados según tipo de punto
+            generarEncabezadosTabla();
+
+            const esPuntoPlaza = (tipoDePuntoGlobal === 'plaza');
+
+            listaProductosFijos.forEach((p, index) => {
+                // Lógica para no repetir el nombre del GRUPO (Rowspan)
+                let grupoHTML = '';
+                if (index === 0 || p.grupo !== listaProductosFijos[index - 1].grupo) {
+                    const rowspanCount = listaProductosFijos.filter(item => item.grupo === p.grupo).length;
+                    grupoHTML = `<td rowspan="${rowspanCount}" style="font-weight: bold; background: #e9ecef;">${p.grupo}</td>`;
+                }
+
+                // Aplica la clase de fondo verde si es Canasta Familiar
+                const productoClase = p.canasta === 'Sí' ? 'producto-canasta' : '';
+
+                // Construir columnas de Abastecimiento solo si es punto plaza
+                let columnasAbastecimiento = '';
+                if (esPuntoPlaza) {
+                    columnasAbastecimiento = `
+                        <!-- Columnas de Abastecimiento -->
+                        <td>
+                            <input type="number" id="cantidad_${index}" placeholder="Cant." min="0" step="any" style="width:100%; text-align:center;" oninput="guardarEstadoLocal()">
+                        </td>
+                        
+                        <td>
+                            <div class="unidad-fija">Libra</div>
+                        </td>
+                        
+                        <td>
+                            <input type="text" id="procedencia_${index}" placeholder="Procedencia" style="width:100%;" oninput="guardarEstadoLocal()">
+                        </td>
+                        
+                        <td>
+                            <select id="frecuencia_${index}" style="width:100%; font-size:10px;" onchange="guardarEstadoLocal()">
+                                <option value="">Seleccione...</option>
+                                <option value="SEMANAL">SEMANAL</option>
+                                <option value="QUINCENAL">QUINCENAL</option>
+                                <option value="MENSUAL">MENSUAL</option>
+                                <option value="BIMENSUAL">BIMENSUAL</option>
+                            </select>
+                        </td>
+                    `;
+                }
+
+                let fila = `
+                    <tr data-index="${index}" data-grupo="${p.grupo}" data-producto="${p.producto}" data-canasta="${p.canasta}">
+                        ${grupoHTML}
+                        <td class="${productoClase}">${p.producto}</td>
+                        ${columnasAbastecimiento}
+                        
+                        <!-- Columnas de Venta -->
+                        <td>
+                            <div class="unidad-fija">Libra</div>
+                        </td>
+                        
+                        <td>
+                            <input type="number" id="precio_${index}" placeholder="Precio $" min="0" step="100" style="width:100%; text-align:right;" oninput="guardarEstadoLocal()">
+                        </td>
+                        
+                        <td>
+                            <input type="text" id="empaque_${index}" placeholder="Empaque" style="width:100%;" oninput="guardarEstadoLocal()">
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += fila;
+            });
+
+            // Cargar datos de la tabla guardados si existen
+            cargarDatosTabla();
+        }
+
+        // Rellena los inputs de la tabla con los datos guardados en localStorage
+        function cargarDatosTabla() {
+            const dataGuardada = localStorage.getItem("encuesta_backup_data");
+            if (!dataGuardada) return;
+
+            const estado = JSON.parse(dataGuardada);
+            const productosData = estado.productosData || [];
+            const esPuntoPlaza = (tipoDePuntoGlobal === 'plaza');
+
+            productosData.forEach((p, index) => {
+                // Solo cargar datos de abastecimiento si es punto plaza
+                if (esPuntoPlaza) {
+                    const cantidadInput = document.getElementById(`cantidad_${index}`);
+                    const procedenciaInput = document.getElementById(`procedencia_${index}`);
+                    const frecuenciaSelect = document.getElementById(`frecuencia_${index}`);
+
+                    if (cantidadInput) cantidadInput.value = p.cantidad || '';
+                    if (procedenciaInput) procedenciaInput.value = p.procedencia || '';
+                    if (frecuenciaSelect) frecuenciaSelect.value = p.frecuencia || '';
+                }
+
+                // Siempre cargar datos de venta
+                const precioInput = document.getElementById(`precio_${index}`);
+                const empaqueInput = document.getElementById(`empaque_${index}`);
+
+                if (precioInput) precioInput.value = p.precio || '';
+                if (empaqueInput) empaqueInput.value = p.empaque || '';
+            });
+        }
+
+
+        /* ========================================================= */
+        /* ===               4. ENVÍO DE FORMULARIO              === */
+        /* ========================================================= */
+        function enviarFormulario() {
+            // VALIDACIÓN INICIAL: Verificar que la tabla tenga filas
+            const filas = document.getElementById("tbodyProductos").querySelectorAll('tr');
+            if (filas.length === 0) {
+                alert("Error: La tabla de productos está vacía.");
+                return;
+            }
+
+            // VALIDACIÓN ESTRICTA: Verificar que al menos un campo tenga datos ANTES de procesar
+            const tipoPunto = tipoDePuntoGlobal;
+            let tieneAlMenosUnDato = false;
+
+            for (let fila of filas) {
+                const index = fila.getAttribute('data-index');
+
+                // Verificar campos de abastecimiento si es punto plaza
+                if (tipoPunto === 'plaza') {
+                    const cantidadInput = document.getElementById(`cantidad_${index}`);
+                    const procedenciaInput = document.getElementById(`procedencia_${index}`);
+
+                    if ((cantidadInput && cantidadInput.value && parseFloat(cantidadInput.value) > 0) ||
+                        (procedenciaInput && procedenciaInput.value.trim() !== '')) {
+                        tieneAlMenosUnDato = true;
+                        break;
+                    }
+                }
+
+                // Verificar campos de venta (siempre presentes)
+                const precioInput = document.getElementById(`precio_${index}`);
+                if (precioInput && precioInput.value && parseFloat(precioInput.value) > 0) {
+                    tieneAlMenosUnDato = true;
+                    break;
+                }
+            }
+
+            // Si no hay ningún dato, mostrar alerta y detener envío
+            if (!tieneAlMenosUnDato) {
+                alert("No se puede enviar la encuesta.\n\nDebe ingresar al menos un dato (cantidad o precio) en algún producto.");
+                return;
+            }
+
+            // CONTINUAR CON EL PROCESO DE ENVÍO
+            const encuestador = document.getElementById("encuestador").value;
+            const fechaOriginal = document.getElementById("fecha").value;
+            const localidad = document.getElementById("localidad").value;
+            const plaza = document.getElementById("plaza").value;
+            let idLocal = (tipoPunto === 'plaza') ? document.getElementById("numLocal").value : document.getElementById("refLocalExterno").value;
+
+            let fechaFormateada = "";
+            if (fechaOriginal) {
+                let partes = fechaOriginal.split('-');
+                // Transformamos de AAAA-MM-DD a DD/MM/AAAA
+                fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+
+            const datosParaExcel = [];
+            let hayDatosValidos = false;
+
+            filas.forEach((fila) => {
+                const index = fila.getAttribute('data-index');
+                const grupo = fila.getAttribute('data-grupo');
+                const producto = fila.getAttribute('data-producto');
+                const canasta = fila.getAttribute('data-canasta') === 'Sí' ? 'Sí' : 'No';
+
+                // Obtener los datos de los inputs asociados
+                let cantidad = '';
+                let procedencia = '';
+                let frecuencia = '';
+
+                // Solo obtener datos de abastecimiento si es punto plaza
+                if (tipoPunto === 'plaza') {
+                    const cantidadInput = document.getElementById(`cantidad_${index}`);
+                    const procedenciaInput = document.getElementById(`procedencia_${index}`);
+                    const frecuenciaInput = document.getElementById(`frecuencia_${index}`);
+
+                    cantidad = cantidadInput ? cantidadInput.value : '';
+                    procedencia = procedenciaInput ? procedenciaInput.value : '';
+                    frecuencia = frecuenciaInput ? frecuenciaInput.value : '';
+                }
+
+                const precio = document.getElementById(`precio_${index}`).value;
+                const empaque = document.getElementById(`empaque_${index}`).value;
+
+                // Validar: si hay Cantidad o Precio, se considera un dato para enviar
+                if (cantidad || precio) {
+                    hayDatosValidos = true;
+
+                    datosParaExcel.push({
+                        "ENCUESTADOR": encuestador,
+                        "FECHA": fechaFormateada,
+                        "LOCALIDAD": localidad,
+                        "PLAZA": plaza || "N/A",
+                        "TIPO_PUNTO": tipoPunto,
+                        "ID_LOCAL": idLocal,
+
+                        "GRUPO_ALIMENTARIO": grupo,
+                        "PRODUCTO": producto,
+                        "ES_CANASTA": canasta,
+
+                        "ABAST_CANTIDAD": cantidad || "",
+                        "ABAST_UNIDAD_MEDIDA": "Lb",
+                        "ABAST_PROCEDENCIA": procedencia || "",
+                        "ABAST_FRECUENCIA": frecuencia || "",
+
+                        "VENTA_PRECIO": precio || "",
+                        "VENTA_UNIDAD_MEDIDA": "Lb",
+                        "VENTA_UNIDAD_EMPAQUE": empaque || "",
+                    });
+                }
+            });
+
+            // Esta validación ya no debería ser necesaria por la validación inicial, pero la dejamos por seguridad
+            if (!hayDatosValidos) {
+                alert("Debe ingresar datos de Cantidad o Precio en al menos una fila para enviar el formulario.");
+                return;
+            }
+
+            // Lógica de envío y manejo del botón
+            const btn = document.getElementById("btnEnviar");
+            const textoOriginal = btn.textContent;
+            btn.disabled = true; btn.textContent = "Enviando...";
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datosParaExcel)
+            })
+                .then(response => {
+                    alert("¡Datos enviados correctamente!");
+                    // Usar resetFormulario() en lugar de cancelarEncuesta() 
+                    // para evitar el confirm adicional
+                    resetFormulario();
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Hubo un error al enviar los datos. Revise la consola.");
+                })
+                .finally(() => {
+                    btn.disabled = false; btn.textContent = textoOriginal;
+                });
+        }
+
+        /* ========================================================= */
+        /* ===          5. PERSISTENCIA (Auto-Guardado)          === */
+        /* ========================================================= */
+
+        // Captura los datos de los inputs de la tabla
+        function getDatosTablaParaGuardar() {
+            const filas = document.getElementById("tbodyProductos").querySelectorAll('tr');
+            const productosData = [];
+            const esPuntoPlaza = (tipoDePuntoGlobal === 'plaza');
+
+            filas.forEach((fila) => {
+                const index = fila.getAttribute('data-index');
+
+                let cantidad = '';
+                let procedencia = '';
+                let frecuencia = '';
+
+                // Solo guardar datos de abastecimiento si es punto plaza
+                if (esPuntoPlaza) {
+                    const cantidadInput = document.getElementById(`cantidad_${index}`);
+                    const procedenciaInput = document.getElementById(`procedencia_${index}`);
+                    const frecuenciaInput = document.getElementById(`frecuencia_${index}`);
+
+                    cantidad = cantidadInput ? cantidadInput.value : '';
+                    procedencia = procedenciaInput ? procedenciaInput.value : '';
+                    frecuencia = frecuenciaInput ? frecuenciaInput.value : '';
+                }
+
+                productosData.push({
+                    cantidad: cantidad,
+                    procedencia: procedencia,
+                    frecuencia: frecuencia,
+                    precio: document.getElementById(`precio_${index}`).value,
+                    empaque: document.getElementById(`empaque_${index}`).value
+                });
+            });
+            return productosData;
+        }
+
+        // Guarda todo el estado del formulario en localStorage
+        function guardarEstadoLocal() {
+            const pasoActual = document.getElementById('pantallaAgregarProductos').style.display === 'block' ? 'productos' : 'step1';
+
+            const estado = {
+                encuestador: document.getElementById("encuestador").value,
+                fecha: document.getElementById("fecha").value,
+                localidad: document.getElementById("localidad").value,
+                plaza: document.getElementById("plaza").value,
+                tipoPunto: document.getElementById("tipoPunto").value,
+                numLocal: document.getElementById("numLocal").value,
+                refLocalExterno: document.getElementById("refLocalExterno").value,
+
+                tipoDePuntoGlobal: tipoDePuntoGlobal,
+                pasoVisual: pasoActual,
+
+                productosData: getDatosTablaParaGuardar()
+            };
+
+            localStorage.setItem("encuesta_backup_data", JSON.stringify(estado));
+        }
+
+        // Carga el estado guardado al iniciar la página
+        function cargarEstadoLocal() {
+            const dataGuardada = localStorage.getItem("encuesta_backup_data");
+            if (!dataGuardada) return;
+
+            const estado = JSON.parse(dataGuardada);
+            tipoDePuntoGlobal = estado.tipoDePuntoGlobal || "";
+            contextoActual = {
+                tipo: estado.tipoPunto || "",
+                id: (estado.tipoPunto === 'plaza' ? estado.numLocal : estado.refLocalExterno) || ""
+            };
+
+            // Restaurar datos generales (primero Select2, luego Selects normales)
+            document.getElementById("encuestador").value = estado.encuestador;
+            document.getElementById("localidad").value = estado.localidad;
+            $('#encuestador').val(estado.encuestador).trigger('change');
+            $('#localidad').val(estado.localidad).trigger('change');
+
+            document.getElementById("fecha").value = estado.fecha;
+            cargarPlazas();
+            document.getElementById("plaza").value = estado.plaza;
+
+            document.getElementById("tipoPunto").value = estado.tipoPunto;
+            document.getElementById("tipoPunto").dispatchEvent(new Event('change'));
+
+            document.getElementById("numLocal").value = estado.numLocal;
+            document.getElementById("refLocalExterno").value = estado.refLocalExterno;
+
+            if (estado.pasoVisual === 'productos') {
+                // Forzar la navegación a la pantalla de productos si estaba allí
+                goToProductsScreen();
+            }
+        }
+
+
+        /* ========================================================= */
+        /* ===          6. INICIALIZACIÓN Y SELECT2              === */
+        /* ========================================================= */
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Inicializar Select2 en los campos de datos generales (Encuestador y Localidad)
+            $(document).ready(function () {
+                $('#encuestador, #localidad').select2({
+                    placeholder: "Seleccione o busque...",
+                    width: '100%'
+                });
+
+                // Truco visual para el placeholder de búsqueda
+                $(document).on('select2:open', function (e) {
+                    document.querySelector('.select2-search__field')?.setAttribute('placeholder', 'Buscar...');
+                });
+
+                // Cargar estado inicial después de Select2
+                cargarEstadoLocal();
+            });
+        });
+    </script>
+</body>
+
+</html>
